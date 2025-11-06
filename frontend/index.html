@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MarketPulse AI - Stock Sentiment Analyzer</title>
+
+  <!-- Ndot 57 Aligned font -->
+  <link href="https://db.onlinewebfonts.com/c/d7a74ed36ff0603a3e41b6da32c47f03?family=Ndot+57+Aligned" rel="stylesheet">
+
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <canvas id="matrix"></canvas>
+
+  <!-- Brandmark / Logo -->
+  <div class="brandmark">MarketPulse AI</div>
+
+  <h1>Sentimental Analysis on Stock Market</h1>
+  <p class="slogan">Decoding market mood, one post at a time</p>
+
+  <div class="container">
+    <label for="fileInput" class="upload-btn">📤 Upload CSV File</label>
+    <input type="file" id="fileInput" accept=".csv" />
+    <div id="statusBox">
+      <p id="awaiting">Awaiting file upload...</p>
+      <p id="analyzing" style="display:none;">Analyzing sentiments...</p>
+    </div>
+  </div>
+
+  <!-- Result Popup -->
+  <div id="resultPopup">
+    <span class="popup-close" onclick="document.getElementById('resultPopup').classList.remove('show')">✖</span>
+    <div id="typewriter">Loading...</div><span class="cursor"></span>
+  </div>
+
+  <div id="stock-ticker">
+    <div id="ticker-headlines">Loading live stocks...</div>
+  </div>
+
+  <footer>⚡ Powered by MarketPulse AI | Real-time Stock Insights</footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
