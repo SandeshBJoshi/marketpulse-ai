@@ -86,12 +86,14 @@ const closeAnalysis = document.getElementById('closeAnalysis');
 // EDA data container
 let edaCounts = { Positive: 0, Neutral: 0, Negative: 0 };
 let parsedRowsGlobal = [];
+let charts = {};
 
 // ===== CSV Upload handler =====
 fileInput.addEventListener('change', async (e) => {
   const file = e.target.files[0];
   if (!file) return;
-  // UI changes
+
+  // UI: mark uploaded, show analyzing
   uploadLabel.classList.add('uploaded');
   uploadLabel.textContent = '📤 Uploaded';
   awaitingText.style.display = 'none';
@@ -117,10 +119,8 @@ fileInput.addEventListener('change', async (e) => {
     parsedRowsGlobal = [];
     edaCounts = { Positive: 0, Neutral: 0, Negative: 0 };
     typewriterDiv.textContent = '';
-    // show popup
-    openResultsPopup();
 
-    // build results lines first (so we can fast-type)
+    // analyze rows (this may take some time)
     const results = [];
     for (const line of posts) {
       if (!line) continue;
@@ -140,12 +140,17 @@ fileInput.addEventListener('change', async (e) => {
       results.push(`"${line}"\n → Sentiment: ${finalLabel} (${percent}%)`);
     }
 
-    // type the results quickly while updating counts
-    parsedRowsGlobal = await typeWriterAndUpdateEDA(typewriterDiv, results, TYPEWRITER_SPEED);
-
-    // finalize UI
+    // Analysis prepared; hide analyzing text and show popup then type
     analyzingText.style.display = 'none';
     awaitingText.style.display = 'block';
+
+    // open popup only now
+    openResultsPopup();
+
+    // type results while updating EDA
+    parsedRowsGlobal = await typeWriterAndUpdateEDA(typewriterDiv, results, TYPEWRITER_SPEED);
+
+    // ensure badges updated
     updateMiniBadges();
   };
 
@@ -162,7 +167,7 @@ function resetStatus() {
 function openResultsPopup(){
   resultPopup.classList.add('show');
   resultPopup.setAttribute('aria-hidden','false');
-  // ensure content scroll is at top
+  // scroll top to start
   const area = document.querySelector('.typewriter-area');
   if (area) area.scrollTop = 0;
 }
@@ -183,14 +188,13 @@ downloadResultsBtn.addEventListener('click', ()=>{
 
 // View Analysis
 viewAnalysisBtn.addEventListener('click', async ()=>{
-  // open analysis overlay
   analysisPopup.classList.add('show');
   analysisPopup.setAttribute('aria-hidden','false');
   await showAnalysisCharts();
 });
 
 // close analysis
-document.getElementById('closeAnalysis').addEventListener('click', ()=>{
+closeAnalysis.addEventListener('click', ()=>{
   analysisPopup.classList.remove('show');
   analysisPopup.setAttribute('aria-hidden','true');
 });
@@ -200,14 +204,12 @@ async function typeWriterAndUpdateEDA(container, lines, speed=10) {
   container.textContent = '';
   const parsedRows = [];
   for (const line of lines) {
-    // type fast but short pause between lines
     for (let i=0;i<line.length;i++){
       container.textContent += line[i];
       await new Promise(r=>setTimeout(r, speed));
     }
     container.textContent += '\n\n';
 
-    // extract sentiment label
     const m = line.match(/Sentiment:\s*(Positive|Neutral|Negative)/i);
     const p = line.match(/\((\d{1,3})%\)/);
     const label = m ? (m[1][0].toUpperCase() + m[1].slice(1).toLowerCase()) : 'Neutral';
@@ -218,9 +220,9 @@ async function typeWriterAndUpdateEDA(container, lines, speed=10) {
 
     updateMiniBadges();
 
-    // auto-scroll the typewriter area as text grows
+    // auto-scroll as content grows
     container.scrollTop = container.scrollHeight;
-    await new Promise(r=>setTimeout(r, Math.max(10, speed)));
+    await new Promise(r=>setTimeout(r, Math.max(6, speed)));
   }
   return parsedRows;
 }
@@ -230,7 +232,6 @@ function updateMiniBadges() {
   miniNeu.textContent = `Neutral: ${edaCounts.Neutral||0}`;
   miniNeg.textContent = `Negative: ${edaCounts.Negative||0}`;
 
-  // also update analysis stat badges (if analysis panel open)
   const sp = document.getElementById('statPos'), sn = document.getElementById('statNeu'), sg = document.getElementById('statNeg');
   if (sp) sp.textContent = `POSITIVE ${edaCounts.Positive||0}`;
   if (sn) sn.textContent = `NEUTRAL ${edaCounts.Neutral||0}`;
@@ -250,7 +251,6 @@ function downloadCsvFromRows(rows){
 }
 
 // ===== Analysis charts =====
-let charts = {};
 async function showAnalysisCharts(){
   try {
     await loadChartJS();
@@ -258,17 +258,15 @@ async function showAnalysisCharts(){
     console.error('Chart.js failed', err);
     return;
   }
-  // gather data
   const pos = edaCounts.Positive || 0;
   const neu = edaCounts.Neutral  || 0;
   const neg = edaCounts.Negative || 0;
   const total = pos + neu + neg || 1;
 
-  // summary text
   const summary = document.getElementById('summaryText');
   if (summary) summary.textContent = `Analyzed ${pos+neu+neg} rows. Positive ${(pos/total*100).toFixed(1)}%, Neutral ${(neu/total*100).toFixed(1)}%, Negative ${(neg/total*100).toFixed(1)}%.`;
 
-  // BAR chart (counts)
+  // BAR
   const ctxBar = document.getElementById('chartBar').getContext('2d');
   if (charts.bar) { charts.bar.data.datasets[0].data = [pos, neu, neg]; charts.bar.update(); }
   else {
@@ -290,7 +288,7 @@ async function showAnalysisCharts(){
     });
   }
 
-  // LINE (cumulative over rows) - build incremental array from parsedRowsGlobal
+  // LINE (cumulative)
   const ctxL = document.getElementById('chartLine').getContext('2d');
   const cumulative = [];
   let cPos=0,cNeu=0,cNeg=0;
@@ -329,7 +327,6 @@ async function showAnalysisCharts(){
     });
   }
 
-  // update stat badges
   updateMiniBadges();
 }
 

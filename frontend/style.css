@@ -21,18 +21,18 @@ input[type="file"] { display:none; }
 #statusBox { text-align:center; font-size:1.2rem; font-weight:bold; line-height:1.8; }
 
 /* RESULT POPUP */
-#resultPopup { display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%) scale(0.95); width:80%; max-width:1100px; max-height:70vh; overflow:hidden; background:rgba(10,18,26,0.95); border-radius:12px; border:1px solid rgba(0,255,247,0.06); padding:0; z-index:9999; box-shadow:0 30px 60px rgba(0,0,0,0.6); }
+#resultPopup { display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%) scale(0.95); width:80%; max-width:1100px; max-height:75vh; overflow:visible; background:rgba(10,18,26,0.95); border-radius:12px; border:1px solid rgba(0,255,247,0.06); padding:0; z-index:9999; box-shadow:0 30px 60px rgba(0,0,0,0.6); }
 #resultPopup.show { display:block; transform:translate(-50%,-50%) scale(1); }
 
 /* close button top right */
 .popup-close { position:absolute; top:12px; right:16px; background:transparent; border:none; color:#fff; font-size:20px; cursor:pointer; z-index:10; }
 
 /* inner content layout */
-.result-content { display:flex; flex-direction:column; height:100%; }
+.result-content { display:flex; flex-direction:column; height:70vh; min-height:420px; }
 .typewriter-area { padding:28px; color:#eafcff; font-family: 'Courier New', monospace; line-height:1.6; white-space:pre-wrap; overflow:auto; flex:1; font-size:0.95rem; border-bottom:1px solid rgba(255,255,255,0.03); }
 
 /* controls sticky area */
-.result-controls { display:flex; align-items:center; justify-content:space-between; padding:12px 18px; gap:12px; background:linear-gradient(180deg, rgba(0,0,0,0.0), rgba(0,0,0,0.2)); position:relative; }
+.result-controls { display:flex; align-items:center; justify-content:space-between; padding:12px 18px; gap:12px; background:linear-gradient(180deg, rgba(0,0,0,0.0), rgba(0,0,0,0.2)); position:sticky; bottom:0; z-index:5; backdrop-filter: blur(2px); }
 .badges { display:flex; gap:10px; align-items:center; }
 .badge { padding:8px 12px; border-radius:999px; font-weight:700; }
 .badge.pos { background: rgba(76,175,80,0.12); color:#7bf08f; }
