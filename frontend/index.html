@@ -20,7 +20,7 @@
   <p class="slogan">Decoding market mood, one post at a time</p>
 
   <div class="container">
-    <label for="fileInput" id="uploadLabel" class="upload-btn">📤 Upload CSV File</label>
+    <label id="uploadLabel" for="fileInput" class="upload-btn">📤 Upload CSV File</label>
     <input type="file" id="fileInput" accept=".csv" />
     <div id="statusBox">
       <p id="awaiting">Awaiting file upload...</p>
@@ -28,30 +28,30 @@
     </div>
   </div>
 
-  <!-- Result Popup (typed statements). Controls are sticky at the bottom of the popup -->
+  <!-- Result Popup (shows typed results) -->
   <div id="resultPopup" aria-hidden="true">
-    <button class="popup-close" id="closeResult">✖</button>
+    <div class="popup-content">
+      <div id="typeArea" class="type-area" role="region" aria-live="polite">
+        <pre id="typewriter">Waiting...</pre>
+      </div>
 
-    <div class="result-content">
-      <div id="typewriter" class="typewriter-area">Upload CSV to start analysis...</div>
-
-      <div class="result-controls">
+      <!-- sticky controls at bottom of result popup -->
+      <div class="popup-controls">
         <div class="badges">
-          <span class="badge pos" id="miniPos">Positive: 0</span>
-          <span class="badge neu" id="miniNeu">Neutral: 0</span>
-          <span class="badge neg" id="miniNeg">Negative: 0</span>
+          <span class="badge pos" id="badgeSmallPos">Positive: 0</span>
+          <span class="badge neu" id="badgeSmallNeu">Neutral: 0</span>
+          <span class="badge neg" id="badgeSmallNeg">Negative: 0</span>
         </div>
-
-        <div class="buttons">
-          <button class="btn" id="downloadResults">⬇ Download Results</button>
-          <button class="btn primary" id="viewAnalysis">📊 View Analysis</button>
-          <button class="btn" id="closeResult2">Close</button>
+        <div class="controls-right">
+          <button id="downloadCsv" class="control-btn">⬇️ Download Results</button>
+          <button id="viewAnalysis" class="control-btn">📊 View Analysis</button>
+          <button id="closePopup" class="control-btn">Close</button>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Analysis Popup (separate overlay with charts) -->
+  <!-- Analysis Popup (separate) -->
   <div id="analysisPopup" aria-hidden="true">
     <div class="panel">
       <div class="analysis-header">
@@ -60,18 +60,12 @@
       </div>
 
       <div class="analysis-grid">
-        <div class="analysis-box">
-          <canvas id="chartBar"></canvas>
-        </div>
-        <div class="analysis-box">
-          <canvas id="chartDoughnut"></canvas>
-        </div>
-        <div class="analysis-box">
-          <canvas id="chartLine"></canvas>
-        </div>
-        <div class="analysis-box" id="analysisInfo">
-          <h4>Summary</h4>
-          <p id="summaryText">No analysis yet.</p>
+        <div class="analysis-box"><canvas id="chartPie"></canvas></div>
+        <div class="analysis-box"><canvas id="chartLine"></canvas></div>
+        <div class="analysis-box"><canvas id="chartBar"></canvas></div>
+        <div class="analysis-box" id="analysisTextBox">
+          <div class="summary-title">SUMMARY</div>
+          <div id="analysisSummary">Analyzed: 0 rows</div>
           <div class="stat-row">
             <div class="stat pos" id="statPos">POSITIVE 0</div>
             <div class="stat neu" id="statNeu">NEUTRAL 0</div>
