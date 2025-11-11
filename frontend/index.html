@@ -28,10 +28,32 @@
     </div>
   </div>
 
-  <!-- Result Popup -->
-  <div id="resultPopup">
+  <!-- Result Popup (now includes typewriter AND EDA chart side-by-side) -->
+  <div id="resultPopup" aria-hidden="true">
     <span class="popup-close" onclick="document.getElementById('resultPopup').classList.remove('show')">✖</span>
-    <div id="typewriter">Loading...</div><span class="cursor"></span>
+
+    <div class="popup-content">
+      <!-- Left: Typewriter / Controls -->
+      <div class="type-col">
+        <div id="typewriter" role="status" aria-live="polite">Loading...</div>
+        <span class="cursor" aria-hidden="true"></span>
+
+        <div class="popup-controls">
+          <button id="downloadCsv" class="download-btn">⬇ Download Results</button>
+          <button id="closePopup" class="download-btn" onclick="document.getElementById('resultPopup').classList.remove('show')">Close</button>
+        </div>
+      </div>
+
+      <!-- Right: EDA (chart + badges) -->
+      <div class="eda-col" aria-label="Exploratory Data Analysis">
+        <canvas id="edaChart" width="400" height="240"></canvas>
+        <div class="eda-badges">
+          <span id="posCount" class="badge pos">Positive: 0</span>
+          <span id="neuCount" class="badge neu">Neutral: 0</span>
+          <span id="negCount" class="badge neg">Negative: 0</span>
+        </div>
+      </div>
+    </div>
   </div>
 
   <div id="stock-ticker">
@@ -39,6 +61,9 @@
   </div>
 
   <footer>⚡ Powered by MarketPulse AI | Real-time Stock Insights</footer>
+
+  <!-- Chart.js (CDN) - used by the popup EDA -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <script src="script.js"></script>
 </body>
