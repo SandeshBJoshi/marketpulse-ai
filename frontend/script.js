@@ -1,7 +1,7 @@
 // ===== CONFIG =====
 const BACKEND_BASE = "https://marketpulse-ai-kir2.onrender.com"; // <- Render backend
 const CSV_ROW_LIMIT = 20;           // how many CSV rows to analyze at once
-const TYPEWRITER_SPEED = 35;        // ms per character (smaller => faster)
+const TYPEWRITER_SPEED = 20;        // ms per character (smaller => faster)
 const TICKER_SPEED = 3;             // pixels per frame (increase to speed up ticker)
 
 // ===== MATRIX ANIMATION =====
@@ -37,7 +37,7 @@ function drawMatrix() {
 }
 setInterval(drawMatrix, 33);
 
-// ===== CSV SENTIMENT ANALYSIS =====
+// ===== CSV SENTIMENT ANALYSIS (backend call) =====
 async function analyzeSentiment(text) {
   try {
     const response = await fetch(`${BACKEND_BASE}/analyze-text`, {
@@ -53,10 +53,11 @@ async function analyzeSentiment(text) {
   }
 }
 
-/* ===== Popup structure / Chart.js loader (creates UI inside #resultPopup) ===== */
+/* ===== POPUP + EDA (lazy-created) ===== */
 let chartInstance = null;
 let edaCounts = { Positive: 0, Neutral: 0, Negative: 0 };
 
+// Helper: load Chart.js only when needed
 function ensureChartjsLoaded() {
   return new Promise((resolve, reject) => {
     if (window.Chart) return resolve();
@@ -68,43 +69,61 @@ function ensureChartjsLoaded() {
   });
 }
 
+// Build popup DOM only when required
 function ensurePopupStructure() {
   const popup = document.getElementById("resultPopup");
-  // If popup-content exists, assume structure is ready
-  if (popup.querySelector(".popup-content")) return; 
+  if (!popup) {
+    console.error("No #resultPopup element found in HTML.");
+    return;
+  }
 
-  // Create structure: popup-content -> type-col + eda-col
-  popup.innerHTML = `
+  // If structure already built, just return
+  if (popup.dataset.built === "1") return;
+
+  // Clear any existing children (defensive)
+  popup.innerHTML = "";
+
+  // Create markup (two columns: typewriter + EDA)
+  const html = `
     <button class="popup-close" title="Close">✖</button>
-    <div class="popup-content">
-      <div class="type-col">
-        <div id="typewriter" style="min-height:220px;font-family:'Courier New',monospace;color:#eafcff;"></div>
-        <div class="popup-controls">
-          <button class="download-btn" id="downloadCsv">Download Results</button>
+    <div class="popup-content" style="display:flex;gap:18px;flex-wrap:wrap;">
+      <div class="type-col" style="flex:1 1 55%;min-width:320px;">
+        <div id="typewriter" style="min-height:220px;font-family:'Courier New',monospace;color:#eafcff;padding-right:8px;"></div>
+        <div class="popup-controls" style="margin-top:12px;display:flex;gap:8px;">
+          <button class="download-btn" id="downloadCsv">⬇ Download Results</button>
+          <button class="view-eda-btn" id="viewEdaBtn" disabled>📊 View EDA</button>
         </div>
       </div>
-      <div class="eda-col">
-        <canvas id="edaChart" aria-label="EDA Chart"></canvas>
-        <div class="eda-badges">
-          <div class="badge pos" id="badgePos">Positive: 0</div>
-          <div class="badge neu" id="badgeNeu">Neutral: 0</div>
-          <div class="badge neg" id="badgeNeg">Negative: 0</div>
+      <div class="eda-col" style="flex:1 1 35%;min-width:240px;display:none;">
+        <div style="height:220px;">
+          <canvas id="edaChart" aria-label="EDA Chart" style="width:100%;height:100%;"></canvas>
+        </div>
+        <div class="eda-badges" style="display:flex;gap:8px;margin-top:10px;">
+          <div class="badge pos" id="badgePos" style="background:#4CAF50;color:#021; padding:6px 10px;border-radius:14px;">Positive: 0</div>
+          <div class="badge neu" id="badgeNeu" style="background:#9E9E9E;color:#021; padding:6px 10px;border-radius:14px;">Neutral: 0</div>
+          <div class="badge neg" id="badgeNeg" style="background:#F44336;color:#021; padding:6px 10px;border-radius:14px;">Negative: 0</div>
         </div>
       </div>
     </div>
   `;
+  popup.innerHTML = html;
+  popup.dataset.built = "1";
 
-  // close button handler
+  // Close handler
   popup.querySelector(".popup-close").addEventListener("click", () => {
-    popup.classList.remove("show");
+    hidePopup();
   });
 }
 
+// Initialize Chart if needed or update it
 async function initChartIfNeeded() {
   await ensureChartjsLoaded();
   ensurePopupStructure();
 
-  const ctx = document.getElementById("edaChart").getContext("2d");
+  const canvasEl = document.getElementById("edaChart");
+  if (!canvasEl) return;
+
+  const ctx = canvasEl.getContext("2d");
   if (chartInstance) {
     chartInstance.data.datasets[0].data = [edaCounts.Positive, edaCounts.Neutral, edaCounts.Negative];
     chartInstance.update();
@@ -119,9 +138,9 @@ async function initChartIfNeeded() {
         label: "Sentiment counts",
         data: [edaCounts.Positive, edaCounts.Neutral, edaCounts.Negative],
         backgroundColor: [
-          "rgba(76, 175, 80, 0.8)",
-          "rgba(158, 158, 158, 0.8)",
-          "rgba(244, 67, 54, 0.8)",
+          "rgba(76, 175, 80, 0.9)",
+          "rgba(158, 158, 158, 0.9)",
+          "rgba(244, 67, 54, 0.9)",
         ],
         borderRadius: 6
       }]
@@ -137,8 +156,8 @@ async function initChartIfNeeded() {
   });
 }
 
+// update badges + chart
 function updateEdaUI() {
-  // update badges
   const bPos = document.getElementById("badgePos");
   const bNeu = document.getElementById("badgeNeu");
   const bNeg = document.getElementById("badgeNeg");
@@ -146,56 +165,73 @@ function updateEdaUI() {
   if (bNeu) bNeu.textContent = `Neutral: ${edaCounts.Neutral}`;
   if (bNeg) bNeg.textContent = `Negative: ${edaCounts.Negative}`;
 
-  // update chart
   if (chartInstance) {
     chartInstance.data.datasets[0].data = [edaCounts.Positive, edaCounts.Neutral, edaCounts.Negative];
     chartInstance.update();
   }
 }
 
-/* ===== Typewriter that updates EDA live ===== */
+/* Typewriter that updates EDA live */
 async function typeWriterWithEda(container, lines, speed = TYPEWRITER_SPEED) {
   container.textContent = "";
-  // We'll also store parsed results for download
   const parsedRows = [];
 
   for (const line of lines) {
-    // type the line character by character
     for (let i = 0; i < line.length; i++) {
       container.textContent += line[i];
       await new Promise(r => setTimeout(r, speed));
     }
     container.textContent += "\n\n";
 
-    // parse sentiment word from the just-typed line
-    // Expected format: → Sentiment: <Label> (<NN>%)
     const m = line.match(/Sentiment:\s*(Positive|Neutral|Negative)/i);
     const p = line.match(/\((\d{1,3})%\)/);
-    const label = m ? (m[1][0].toUpperCase() + m[1].slice(1).toLowerCase()) : "Neutral";
+    const labelRaw = m ? m[1] : "Neutral";
+    const label = labelRaw[0].toUpperCase() + labelRaw.slice(1).toLowerCase();
     const percent = p ? Number(p[1]) : null;
 
-    // update counters
     if (!edaCounts[label]) edaCounts[label] = 0;
     edaCounts[label] += 1;
     updateEdaUI();
 
-    // save parsed row for download
     parsedRows.push({ text: line.split("\n")[0].replace(/^"/, "").replace(/"$/, ""), sentiment: label, score: percent ?? "" });
-
-    // short pause between lines
-    await new Promise(r => setTimeout(r, Math.max(40, speed)));
+    await new Promise(r => setTimeout(r, Math.max(25, speed)));
   }
 
   return parsedRows;
 }
 
-/* ===== UI refs ===== */
+/* UI refs + defensive popup hide on load */
 const awaitingText = document.getElementById("awaiting");
 const analyzingText = document.getElementById("analyzing");
 const resultPopup = document.getElementById("resultPopup");
-let typewriterDiv = document.getElementById("typewriter"); // may be replaced when popup structure created
 
-// CSV upload handler
+// Defensive: ensure popup hidden on load (both CSS class and inline display)
+if (resultPopup) {
+  resultPopup.classList.remove("show");
+  resultPopup.style.display = "none";
+} else {
+  console.warn("#resultPopup element not found — please ensure your HTML contains <div id='resultPopup'></div>");
+}
+
+let typewriterDiv = document.getElementById("typewriter"); // may be replaced later
+
+// Show / hide helpers (use both display and class to avoid flashes)
+function showPopup() {
+  const popup = document.getElementById("resultPopup");
+  if (!popup) return;
+  popup.style.display = "block";
+  // small timeout to allow CSS transitions if any
+  setTimeout(() => popup.classList.add("show"), 8);
+}
+function hidePopup() {
+  const popup = document.getElementById("resultPopup");
+  if (!popup) return;
+  popup.classList.remove("show");
+  // remove inline after transition (safe fallback: 250ms)
+  setTimeout(() => { popup.style.display = "none"; }, 260);
+}
+
+/* CSV upload handler (main flow) */
 document.getElementById("fileInput").addEventListener("change", async function (e) {
   const file = e.target.files[0];
   if (!file) return;
@@ -221,22 +257,25 @@ document.getElementById("fileInput").addEventListener("change", async function (
       return;
     }
 
-    // take up to CSV_ROW_LIMIT rows for client-side analysis
     const posts = lines.slice(1, 1 + CSV_ROW_LIMIT);
-    const results = []; // string lines to type
+    const results = [];
 
-    // reset EDA counts
     edaCounts = { Positive: 0, Neutral: 0, Negative: 0 };
 
-    // prepare popup structure + chart
+    // Prepare popup structure (DOM built lazily)
     ensurePopupStructure();
-    await initChartIfNeeded(); // loads Chart.js if needed
-    typewriterDiv = document.getElementById("typewriter"); // update ref
-    // clear any previous text
+    typewriterDiv = document.getElementById("typewriter");
+    if (!typewriterDiv) {
+      // fallback: create a simple container if missing
+      const popup = document.getElementById("resultPopup");
+      popup.innerHTML = popup.innerHTML + '<div id="typewriter" style="min-height:160px"></div>';
+      typewriterDiv = document.getElementById("typewriter");
+    }
+    // clear previous
     typewriterDiv.textContent = "";
     updateEdaUI();
 
-    // analyze each row (split sub-sentences) and build result lines array
+    // analyze rows (call backend)
     for (const line of posts) {
       if (!line.trim()) continue;
 
@@ -261,18 +300,18 @@ document.getElementById("fileInput").addEventListener("change", async function (
     analyzingText.style.display = "none";
     awaitingText.style.display = "block";
 
-    // show popup
-    resultPopup.classList.add("show");
+    // Show popup (only now)
+    showPopup();
 
-    // hook download button (created in ensurePopupStructure)
+    // Setup buttons
     const downloadBtn = document.getElementById("downloadCsv");
+    const viewEdaBtn = document.getElementById("viewEdaBtn");
+    const edaCol = document.querySelector("#resultPopup .eda-col");
+
     downloadBtn.onclick = () => {
-      // we'll build CSV from the currently displayed rows (the results array may be typed partly)
-      // if chart counts aren't in sync yet, that's fine — we download parsedRows returned after typing
       if (window._lastParsedRows && window._lastParsedRows.length) {
         downloadCsvFromRows(window._lastParsedRows);
       } else {
-        // fallback: download the prepared results with unknown sentiment
         const rows = results.map(r => {
           const txt = r.split("\n")[0].replace(/^"/, "").replace(/"$/, "");
           const m = r.match(/Sentiment:\s*(Positive|Neutral|Negative)/i);
@@ -283,24 +322,31 @@ document.getElementById("fileInput").addEventListener("change", async function (
       }
     };
 
-    // run typewriter that updates EDA live and also returns parsed rows for download
+    // view EDA lazy-load
+    viewEdaBtn.disabled = true;
+    viewEdaBtn.onclick = async () => {
+      await initChartIfNeeded();
+      if (edaCol) edaCol.style.display = "block";
+      updateEdaUI();
+    };
+
+    // Do the typing (fast) and update EDA live
     const parsedRows = await typeWriterWithEda(typewriterDiv, results, TYPEWRITER_SPEED);
-    // store globally so download button can use it immediately after typing
     window._lastParsedRows = parsedRows.slice();
 
-    // final UI update
+    // enable view EDA after typing
+    viewEdaBtn.disabled = false;
+
     updateEdaUI();
   };
 
   reader.readAsText(file);
 });
 
-/* ===== Download CSV utility ===== */
+/* Download CSV utility */
 function downloadCsvFromRows(rows) {
-  // rows: [{text, sentiment, score}]
   const header = ["Sentence", "Sentiment", "Score"];
   const csv = [header.join(",")].concat(rows.map(r => {
-    // escape quotes and commas
     const safe = (s) => `"${String(s || "").replace(/"/g, '""')}"`;
     return [safe(r.text), safe(r.sentiment), safe(r.score)].join(",");
   })).join("\n");
@@ -320,7 +366,6 @@ function downloadCsvFromRows(rows) {
 const tickerHeadlines = document.getElementById("ticker-headlines");
 const symbols = ["AAPL", "GOOGL", "MSFT", "AMZN", "TSLA", "META", "NFLX", "NVDA", "BABA", "DIS"];
 
-// Fetch price & growth from backend (Render)
 async function fetchStock(symbol) {
   try {
     const res = await fetch(`${BACKEND_BASE}/stock/${symbol}`);
@@ -344,7 +389,6 @@ async function fetchStock(symbol) {
   }
 }
 
-// Ticker animation (smooth translateX using requestAnimationFrame)
 let tickerX = 0;
 let contentWidth = 0;
 let viewportWidth = 0;
@@ -354,14 +398,12 @@ async function updateTicker() {
   const html = headlines.join(" ");
   tickerHeadlines.innerHTML = html;
 
-  // measure widths and set starting x at viewport right edge
   contentWidth = tickerHeadlines.offsetWidth || 1000;
   viewportWidth = tickerHeadlines.parentElement.offsetWidth || window.innerWidth;
-  tickerX = viewportWidth; // start from right edge
+  tickerX = viewportWidth;
 }
 function animateTicker() {
   tickerX -= TICKER_SPEED;
-  // when content moved fully off left side, reset to start on right
   if (tickerX <= -contentWidth) {
     tickerX = viewportWidth;
   }
@@ -369,9 +411,7 @@ function animateTicker() {
   requestAnimationFrame(animateTicker);
 }
 
-// init
 updateTicker().then(() => {
   requestAnimationFrame(animateTicker);
 });
-// refresh data every 15s without restarting animation
 setInterval(updateTicker, 15000);
