@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>MarketPulse AI - Stock Sentiment Analyzer</title>
 
   <!-- Ndot 57 Aligned font -->
@@ -20,7 +20,7 @@
   <p class="slogan">Decoding market mood, one post at a time</p>
 
   <div class="container">
-    <label for="fileInput" class="upload-btn" id="uploadBtn">📤 Upload CSV File</label>
+    <label for="fileInput" id="uploadLabel" class="upload-btn">📤 Upload CSV File</label>
     <input type="file" id="fileInput" accept=".csv" />
     <div id="statusBox">
       <p id="awaiting">Awaiting file upload...</p>
@@ -30,34 +30,34 @@
 
   <!-- Result Popup (typewriter + controls) -->
   <div id="resultPopup" aria-hidden="true">
-    <button class="popup-close" id="resultClose">✖</button>
+    <button class="popup-close" id="closeResults">✖</button>
     <div class="popup-content">
       <div class="type-col">
         <div id="typewriter">Loading...</div>
         <div class="popup-controls">
-          <button class="download-btn" id="downloadCsv">⬇ Download Results</button>
-          <button class="view-eda" id="viewEdaBtn">📊 View Analysis</button>
-          <button class="close-btn" id="closeResult">Close</button>
+          <button class="action-btn" id="downloadCsv">⬇ Download Results</button>
+          <button class="action-btn" id="viewAnalysis">📊 View Analysis</button>
+          <button class="action-btn" id="closeBtn">Close</button>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- EDA Popup (separate, opens on View Analysis) -->
+  <!-- Analysis popup with grid canvases (initially hidden) -->
   <div id="analysisPopup" aria-hidden="true">
     <div class="panel">
       <div class="analysis-header">
         <h3>IN-DEPTH MARKETPULSE EDA</h3>
-        <button class="close-anal" id="closeAnalysis">✖</button>
+        <button class="close-anal" id="closeAnal">✖</button>
       </div>
+
       <div class="analysis-grid">
         <div class="analysis-box"><canvas id="chart1" class="eda-canvas"></canvas></div>
         <div class="analysis-box"><canvas id="chart2" class="eda-canvas"></canvas></div>
         <div class="analysis-box"><canvas id="chart3" class="eda-canvas"></canvas></div>
-        <div class="analysis-box" id="analysisSummary">
-          <div class="summary-title">SUMMARY</div>
-          <div id="summaryText">Analyzed 0 rows</div>
-          <div class="stat-row">
+        <div class="analysis-box" id="analysisInfo">
+          <div id="summaryText" style="font-family:'Ndot 57 Aligned', monospace;"></div>
+          <div class="stat-row" style="margin-top:12px;">
             <div class="stat pos" id="statPos">Positive 0</div>
             <div class="stat neu" id="statNeu">Neutral 0</div>
             <div class="stat neg" id="statNeg">Negative 0</div>
@@ -73,6 +73,6 @@
 
   <footer>⚡ Powered by MarketPulse AI | Real-time Stock Insights</footer>
 
-  <script src="script.js"></script>
+  <script src="script.js" defer></script>
 </body>
 </html>
