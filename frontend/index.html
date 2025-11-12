@@ -20,7 +20,7 @@
   <p class="slogan">Decoding market mood, one post at a time</p>
 
   <div class="container">
-    <label id="uploadLabel" for="fileInput" class="upload-btn">📤 Upload CSV File</label>
+    <label for="fileInput" class="upload-btn" id="uploadBtn">📤 Upload CSV File</label>
     <input type="file" id="fileInput" accept=".csv" />
     <div id="statusBox">
       <p id="awaiting">Awaiting file upload...</p>
@@ -28,48 +28,39 @@
     </div>
   </div>
 
-  <!-- Result Popup (shows typed results) -->
+  <!-- Result Popup (typewriter + controls) -->
   <div id="resultPopup" aria-hidden="true">
+    <button class="popup-close" id="resultClose">✖</button>
     <div class="popup-content">
-      <div id="typeArea" class="type-area" role="region" aria-live="polite">
-        <pre id="typewriter">Waiting...</pre>
-      </div>
-
-      <!-- sticky controls at bottom of result popup -->
-      <div class="popup-controls">
-        <div class="badges">
-          <span class="badge pos" id="badgeSmallPos">Positive: 0</span>
-          <span class="badge neu" id="badgeSmallNeu">Neutral: 0</span>
-          <span class="badge neg" id="badgeSmallNeg">Negative: 0</span>
-        </div>
-        <div class="controls-right">
-          <button id="downloadCsv" class="control-btn">⬇️ Download Results</button>
-          <button id="viewAnalysis" class="control-btn">📊 View Analysis</button>
-          <button id="closePopup" class="control-btn">Close</button>
+      <div class="type-col">
+        <div id="typewriter">Loading...</div>
+        <div class="popup-controls">
+          <button class="download-btn" id="downloadCsv">⬇ Download Results</button>
+          <button class="view-eda" id="viewEdaBtn">📊 View Analysis</button>
+          <button class="close-btn" id="closeResult">Close</button>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Analysis Popup (separate) -->
+  <!-- EDA Popup (separate, opens on View Analysis) -->
   <div id="analysisPopup" aria-hidden="true">
     <div class="panel">
       <div class="analysis-header">
         <h3>IN-DEPTH MARKETPULSE EDA</h3>
         <button class="close-anal" id="closeAnalysis">✖</button>
       </div>
-
       <div class="analysis-grid">
-        <div class="analysis-box"><canvas id="chartPie"></canvas></div>
-        <div class="analysis-box"><canvas id="chartLine"></canvas></div>
-        <div class="analysis-box"><canvas id="chartBar"></canvas></div>
-        <div class="analysis-box" id="analysisTextBox">
+        <div class="analysis-box"><canvas id="chart1" class="eda-canvas"></canvas></div>
+        <div class="analysis-box"><canvas id="chart2" class="eda-canvas"></canvas></div>
+        <div class="analysis-box"><canvas id="chart3" class="eda-canvas"></canvas></div>
+        <div class="analysis-box" id="analysisSummary">
           <div class="summary-title">SUMMARY</div>
-          <div id="analysisSummary">Analyzed: 0 rows</div>
+          <div id="summaryText">Analyzed 0 rows</div>
           <div class="stat-row">
-            <div class="stat pos" id="statPos">POSITIVE 0</div>
-            <div class="stat neu" id="statNeu">NEUTRAL 0</div>
-            <div class="stat neg" id="statNeg">NEGATIVE 0</div>
+            <div class="stat pos" id="statPos">Positive 0</div>
+            <div class="stat neu" id="statNeu">Neutral 0</div>
+            <div class="stat neg" id="statNeg">Negative 0</div>
           </div>
         </div>
       </div>
