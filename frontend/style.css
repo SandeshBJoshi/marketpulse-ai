@@ -44,7 +44,7 @@ input[type="file"] { display:none; }
   max-width:980px;
   max-height:70vh;
   overflow:auto;
-  background:rgba(6,10,14,0.94);
+  background:rgba(48, 129, 210, 0.94);
   backdrop-filter:blur(8px);
   border:2px solid rgba(0,255,247,0.06);
   border-radius:14px;
