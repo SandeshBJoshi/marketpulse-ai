@@ -9,11 +9,12 @@
   <link href="https://db.onlinewebfonts.com/c/d7a74ed36ff0603a3e41b6da32c47f03?family=Ndot+57+Aligned" rel="stylesheet">
 
   <link rel="stylesheet" href="style.css">
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
   <canvas id="matrix"></canvas>
 
-  <!-- Brandmark / Logo -->
   <div class="brandmark">MarketPulse AI</div>
 
   <h1>Sentimental Analysis on Stock Market</h1>
@@ -28,51 +29,65 @@
     </div>
   </div>
 
-  <!-- Result Popup (typewriter + controls) -->
+  <!-- Results popup (typewriter + compact controls) -->
   <div id="resultPopup" aria-hidden="true">
-    <button class="popup-close" id="closeResults">✖</button>
-    <div class="popup-content">
-      <div class="type-col">
-        <div id="typewriter">Loading...</div>
-        <div class="popup-controls">
-          <button class="action-btn" id="downloadCsv">⬇ Download Results</button>
-          <button class="action-btn" id="viewAnalysis">📊 View Analysis</button>
-          <button class="action-btn" id="closeBtn">Close</button>
+    <div class="result-inner">
+      <div class="type-area" id="typeArea"><div id="typewriter">Loading...</div><span class="cursor"></span></div>
+
+      <div class="result-footer">
+        <div class="badges" id="summaryBadges">
+          <span class="badge pos" id="badgePos">Positive: 0</span>
+          <span class="badge neu" id="badgeNeu">Neutral: 0</span>
+          <span class="badge neg" id="badgeNeg">Negative: 0</span>
+        </div>
+
+        <div class="controls">
+          <button id="downloadCsv" class="action">⬇ DOWNLOAD RESULTS</button>
+          <button id="viewAnalysis" class="action primary">📊 VIEW ANALYSIS</button>
+          <button id="closeResults" class="action">CLOSE</button>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Analysis popup with grid canvases (initially hidden) -->
+  <!-- Analysis popup (detailed EDA) -->
   <div id="analysisPopup" aria-hidden="true">
     <div class="panel">
       <div class="analysis-header">
-        <h3>IN-DEPTH MARKETPULSE EDA</h3>
-        <button class="close-anal" id="closeAnal">✖</button>
+        <h2>IN-DEPTH MARKETPULSE EDA</h2>
+        <button class="close-anal" id="closeAnalysis">✖</button>
       </div>
 
       <div class="analysis-grid">
-        <div class="analysis-box"><canvas id="chart1" class="eda-canvas"></canvas></div>
-        <div class="analysis-box"><canvas id="chart2" class="eda-canvas"></canvas></div>
-        <div class="analysis-box"><canvas id="chart3" class="eda-canvas"></canvas></div>
-        <div class="analysis-box" id="analysisInfo">
-          <div id="summaryText" style="font-family:'Ndot 57 Aligned', monospace;"></div>
-          <div class="stat-row" style="margin-top:12px;">
-            <div class="stat pos" id="statPos">Positive 0</div>
-            <div class="stat neu" id="statNeu">Neutral 0</div>
-            <div class="stat neg" id="statNeg">Negative 0</div>
+        <div class="analysis-box">
+          <canvas id="chartDonut" class="chart-canvas"></canvas>
+        </div>
+
+        <div class="analysis-box">
+          <canvas id="chartBar" class="chart-canvas"></canvas>
+        </div>
+
+        <div class="analysis-box">
+          <canvas id="chartLine" class="chart-canvas"></canvas>
+        </div>
+
+        <div class="analysis-box" id="analysisSummaryBox">
+          <div class="summary-text" id="analysisSummary"></div>
+          <div class="stat-row" id="analysisStats">
+            <div class="stat pos" id="statPos">POSITIVE 0</div>
+            <div class="stat neu" id="statNeu">NEUTRAL 0</div>
+            <div class="stat neg" id="statNeg">NEGATIVE 0</div>
           </div>
         </div>
       </div>
+
     </div>
   </div>
 
-  <div id="stock-ticker">
-    <div id="ticker-headlines">Loading live stocks...</div>
-  </div>
+  <div id="stock-ticker"><div id="ticker-headlines">Loading live stocks...</div></div>
 
   <footer>⚡ Powered by MarketPulse AI | Real-time Stock Insights</footer>
 
-  <script src="script.js" defer></script>
+  <script src="script.js"></script>
 </body>
 </html>
