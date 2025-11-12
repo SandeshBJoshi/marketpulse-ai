@@ -33,7 +33,7 @@ input[type="file"] { display:none; }
 /* status */
 #statusBox { text-align:center; font-size:1.2rem; font-weight:bold; line-height:1.8; }
 
-/* RESULT POPUP (typewriter) */
+/* RESULT POPUP (typewriter) - semi-transparent blue glass */
 #resultPopup {
   display:none;
   position:fixed;
@@ -44,17 +44,72 @@ input[type="file"] { display:none; }
   max-width:980px;
   max-height:70vh;
   overflow:auto;
-  background:rgba(48, 129, 210, 0.94);
-  backdrop-filter:blur(8px);
-  border:2px solid rgba(0,255,247,0.06);
+  /* <<< blue glass background >>> */
+  background: linear-gradient(180deg, rgba(10,120,210,0.18), rgba(6,90,170,0.12));
+  /* subtle inner tint + blur */
+  backdrop-filter: blur(10px) saturate(1.05);
+  -webkit-backdrop-filter: blur(10px) saturate(1.05);
+  border: 1px solid rgba(0,200,255,0.14);
   border-radius:14px;
   padding:20px;
   color:#eafcff;
-  box-shadow:0 12px 60px rgba(0,0,0,0.6);
+  box-shadow: 0 12px 60px rgba(0, 40, 80, 0.45), inset 0 1px 0 rgba(255,255,255,0.03);
   z-index:11000;
 }
-#resultPopup.show { display:block; transform:translate(-50%,-50%) scale(1); }
-#resultPopup .popup-close { position:absolute; right:18px; top:12px; background:transparent; border:none; color:#fff; font-size:20px; cursor:pointer; }
+/* show state */
+#resultPopup.show {
+  display:block;
+  transform:translate(-50%,-50%) scale(1);
+  opacity:1;
+}
+
+/* close button stays visible on blue background */
+#resultPopup .popup-close {
+  position:absolute;
+  right:18px;
+  top:12px;
+  background:rgba(255,255,255,0.06);
+  border:1px solid rgba(255,255,255,0.06);
+  color:#fff;
+  font-size:18px;
+  padding:6px 8px;
+  border-radius:6px;
+  cursor:pointer;
+}
+
+/* type area stays slightly darker for contrast */
+.type-col {
+  font-family: 'Courier New', monospace;
+  font-size:14px;
+  line-height:1.6;
+  white-space:pre-wrap;
+  color:#eafcff;
+  min-height:240px;
+  max-height:46vh;
+  overflow:auto;
+  padding-right:12px;
+  background: linear-gradient(180deg, rgba(2,6,10,0.06), rgba(2,6,10,0.02));
+  border-radius:8px;
+  padding:14px;
+  border: 1px solid rgba(0,0,0,0.04);
+}
+
+/* nicer scrollbar on the blue glass */
+#resultPopup::-webkit-scrollbar,
+.type-col::-webkit-scrollbar {
+  width:12px;
+}
+#resultPopup::-webkit-scrollbar-track,
+.type-col::-webkit-scrollbar-track {
+  background: rgba(255,255,255,0.03);
+  border-radius:8px;
+}
+#resultPopup::-webkit-scrollbar-thumb,
+.type-col::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgba(0,180,230,0.28), rgba(0,140,200,0.24));
+  border-radius:8px;
+  border: 2px solid rgba(0,0,0,0.06);
+}
 
 /* content inside popup */
 .popup-content { display:block; padding-top:6px; }
