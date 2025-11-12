@@ -83,7 +83,7 @@ async function typeWriter(container, lines, speed = TYPEWRITER_SPEED) {
 const awaitingText = document.getElementById("awaiting");
 const analyzingText = document.getElementById("analyzing");
 const resultPopup = document.getElementById("resultPopup");
-const typewriterDiv = document.getElementById("typewriter");
+let typewriterDiv = document.getElementById("typewriter"); // may be inside popup
 const uploadLabel = document.getElementById("uploadLabel");
 const fileInput = document.getElementById("fileInput");
 const downloadBtn = document.getElementById("downloadCsv");
@@ -101,25 +101,31 @@ const summaryText = document.getElementById("summaryText");
 // store parsed rows for download & charts
 window._lastParsedRows = [];
 
+// initial UI state
+viewAnalysisBtn.disabled = true;
+downloadBtn.disabled = true;
+
 // ===== CSV UPLOAD HANDLER =====
 fileInput.addEventListener("change", async function (e) {
   const file = e.target.files[0];
   if (!file) return;
-  // mark UI
+
+  // visually mark uploaded
   uploadLabel.classList.add("uploaded");
-  uploadLabel.textContent = "📤 Uploaded";
+  uploadLabel.textContent = "✅ Uploaded";
   awaitingText.style.display = "none";
   analyzingText.style.display = "block";
 
   const reader = new FileReader();
   reader.onload = async function(event) {
     const allLines = event.target.result.split("\n");
-    // remove BOM lines and blank
     const lines = allLines.filter(l => l && l.trim());
     if (lines.length < 2) {
       alert("CSV looks empty or invalid.");
       analyzingText.style.display = "none";
       awaitingText.style.display = "block";
+      uploadLabel.classList.remove("uploaded");
+      uploadLabel.textContent = "📤 Upload CSV File";
       return;
     }
 
@@ -128,13 +134,16 @@ fileInput.addEventListener("change", async function (e) {
       alert("CSV must have a 'Sentence' column in the header.");
       analyzingText.style.display = "none";
       awaitingText.style.display = "block";
+      uploadLabel.classList.remove("uploaded");
+      uploadLabel.textContent = "📤 Upload CSV File";
       return;
     }
 
     const posts = lines.slice(1, 1 + CSV_ROW_LIMIT);
     const results = [];
     window._lastParsedRows = [];
-    // analyze each row
+
+    // analyze each row (sequential to avoid blasting backend)
     for (const line of posts) {
       if (!line.trim()) continue;
       const subSentences = line.match(/[^.!?]+[.!?]?/g) || [line];
@@ -150,6 +159,7 @@ fileInput.addEventListener("change", async function (e) {
         finalScore = top.score;
       }
       const percentScore = Math.min(Math.round(finalScore * 10), 100);
+
       results.push(`"${line.trim()}"\n → Sentiment: ${finalLabel} (${percentScore}%)`);
       window._lastParsedRows.push({ text: line.trim().replace(/^"|"$/g, ""), sentiment: finalLabel, score: percentScore });
     }
@@ -157,13 +167,15 @@ fileInput.addEventListener("change", async function (e) {
     analyzingText.style.display = "none";
     awaitingText.style.display = "block";
 
-    // show results popup (typewriter)
+    // show results popup and type
     resultPopup.classList.add("show");
-    resultPopup.setAttribute("aria-hidden", "false");
+    resultPopup.setAttribute("aria-hidden","false");
+    // ensure we still reference the correct typewriter node
+    typewriterDiv = document.getElementById("typewriter");
     typewriterDiv.textContent = "";
     await typeWriter(typewriterDiv, results, TYPEWRITER_SPEED);
 
-    // result typed, enable view analysis
+    // enable analysis & download
     viewAnalysisBtn.disabled = false;
     downloadBtn.disabled = false;
   };
@@ -190,10 +202,8 @@ viewAnalysisBtn.addEventListener("click", async () => {
     alert("No analysis data available. First upload a CSV and wait for results.");
     return;
   }
-  // open analysis popup and then create charts
   analysisPopup.style.display = "flex";
   analysisPopup.setAttribute("aria-hidden","false");
-  // create charts (safe)
   await createEdaCharts(window._lastParsedRows);
 });
 
@@ -256,21 +266,15 @@ function animateTicker() {
 updateTicker().then(()=>requestAnimationFrame(animateTicker));
 setInterval(updateTicker, 15000);
 
-// ===== EDA CHARTS: remove stray canvases and create charts safely =====
-function removeStrayEdaCanvases() {
-  document.querySelectorAll('canvas').forEach(c => {
-    const id = c.id || "";
-    const isEda = c.classList.contains('eda-canvas') || id.startsWith('chart');
-    if (isEda && !analysisPopup.contains(c)) c.remove();
-  });
-}
+// ===== EDA CHARTS: create charts safely =====
 let charts = [];
 async function createEdaCharts(rows) {
   await loadChartJs();
-  removeStrayEdaCanvases();
+
   // compute counts
   const counts = { Positive:0, Neutral:0, Negative:0 };
   rows.forEach(r => { counts[r.sentiment] = (counts[r.sentiment]||0) + 1; });
+
   // update summary UI
   statPos.textContent = `Positive ${counts.Positive}`;
   statNeu.textContent = `Neutral ${counts.Neutral}`;
@@ -281,7 +285,7 @@ async function createEdaCharts(rows) {
   charts.forEach(c => { try{ c.destroy(); } catch(e){} });
   charts = [];
 
-  // helper to prepare canvas size & context for high-DPI
+  // helper: prepare canvas for high-DPI
   function prepareCanvas(id) {
     const canvas = document.getElementById(id);
     const parent = canvas.parentElement;
@@ -321,12 +325,10 @@ async function createEdaCharts(rows) {
   charts.push(new Chart(ctx3.canvas.getContext('2d'), {
     type:'line',
     data:{ labels, datasets:[
-      { label:'Positive', data:posSeries, borderColor:'#4CAF50', fill:false, tension:0.2 },
-      { label:'Neutral', data:neuSeries, borderColor:'#90A4AE', fill:false, tension:0.2 },
-      { label:'Negative', data:negSeries, borderColor:'#F44336', fill:false, tension:0.2 }
+      { label:'Positive', data:posSeries, borderColor:'#4CAF50', pointRadius:1, fill:false, tension:0.2 },
+      { label:'Neutral', data:neuSeries, borderColor:'#90A4AE', pointRadius:1, fill:false, tension:0.2 },
+      { label:'Negative', data:negSeries, borderColor:'#F44336', pointRadius:1, fill:false, tension:0.2 }
     ]},
     options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'top' } } }
   }));
-
-  // done
 }
