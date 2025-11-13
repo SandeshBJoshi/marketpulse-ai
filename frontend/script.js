@@ -1,7 +1,7 @@
 // ===== CONFIG =====
 const BACKEND_BASE = "https://marketpulse-ai-kir2.onrender.com"; // Render backend URL
-const CSV_ROW_LIMIT = 31;           // how many CSV rows to analyze at once
-const TYPEWRITER_SPEED = 5;        // ms per character
+const CSV_ROW_LIMIT = 20;           // how many CSV rows to analyze at once
+const TYPEWRITER_SPEED = 20;        // ms per character
 const TICKER_SPEED = 3;             // pixels per frame
 
 // ===== MATRIX ANIMATION =====
@@ -66,7 +66,7 @@ async function analyzeSentiment(text) {
   }
 }
 
-// ===== TYPEWRITER THAT DOES NOT AUTO OPEN EDA (user clicks View Analysis) =====
+// ===== TYPEWRITER (non-blocking UI) =====
 async function typeWriter(container, lines, speed = TYPEWRITER_SPEED) {
   container.textContent = "";
   for (const line of lines) {
@@ -83,7 +83,7 @@ async function typeWriter(container, lines, speed = TYPEWRITER_SPEED) {
 const awaitingText = document.getElementById("awaiting");
 const analyzingText = document.getElementById("analyzing");
 const resultPopup = document.getElementById("resultPopup");
-let typewriterDiv = document.getElementById("typewriter"); // may be inside popup
+const typewriterDiv = document.getElementById("typewriter");
 const uploadLabel = document.getElementById("uploadLabel");
 const fileInput = document.getElementById("fileInput");
 const downloadBtn = document.getElementById("downloadCsv");
@@ -101,31 +101,25 @@ const summaryText = document.getElementById("summaryText");
 // store parsed rows for download & charts
 window._lastParsedRows = [];
 
-// initial UI state
-viewAnalysisBtn.disabled = true;
-downloadBtn.disabled = true;
-
 // ===== CSV UPLOAD HANDLER =====
 fileInput.addEventListener("change", async function (e) {
   const file = e.target.files[0];
   if (!file) return;
-
-  // visually mark uploaded
+  // mark UI
   uploadLabel.classList.add("uploaded");
-  uploadLabel.textContent = "✅ Uploaded";
+  uploadLabel.textContent = "📤 Uploaded";
   awaitingText.style.display = "none";
   analyzingText.style.display = "block";
 
   const reader = new FileReader();
   reader.onload = async function(event) {
     const allLines = event.target.result.split("\n");
+    // remove blanks
     const lines = allLines.filter(l => l && l.trim());
     if (lines.length < 2) {
       alert("CSV looks empty or invalid.");
       analyzingText.style.display = "none";
       awaitingText.style.display = "block";
-      uploadLabel.classList.remove("uploaded");
-      uploadLabel.textContent = "📤 Upload CSV File";
       return;
     }
 
@@ -134,16 +128,13 @@ fileInput.addEventListener("change", async function (e) {
       alert("CSV must have a 'Sentence' column in the header.");
       analyzingText.style.display = "none";
       awaitingText.style.display = "block";
-      uploadLabel.classList.remove("uploaded");
-      uploadLabel.textContent = "📤 Upload CSV File";
       return;
     }
 
     const posts = lines.slice(1, 1 + CSV_ROW_LIMIT);
     const results = [];
     window._lastParsedRows = [];
-
-    // analyze each row (sequential to avoid blasting backend)
+    // analyze each row
     for (const line of posts) {
       if (!line.trim()) continue;
       const subSentences = line.match(/[^.!?]+[.!?]?/g) || [line];
@@ -159,7 +150,6 @@ fileInput.addEventListener("change", async function (e) {
         finalScore = top.score;
       }
       const percentScore = Math.min(Math.round(finalScore * 10), 100);
-
       results.push(`"${line.trim()}"\n → Sentiment: ${finalLabel} (${percentScore}%)`);
       window._lastParsedRows.push({ text: line.trim().replace(/^"|"$/g, ""), sentiment: finalLabel, score: percentScore });
     }
@@ -167,15 +157,13 @@ fileInput.addEventListener("change", async function (e) {
     analyzingText.style.display = "none";
     awaitingText.style.display = "block";
 
-    // show results popup and type
+    // show results popup (typewriter)
     resultPopup.classList.add("show");
-    resultPopup.setAttribute("aria-hidden","false");
-    // ensure we still reference the correct typewriter node
-    typewriterDiv = document.getElementById("typewriter");
+    resultPopup.setAttribute("aria-hidden", "false");
     typewriterDiv.textContent = "";
     await typeWriter(typewriterDiv, results, TYPEWRITER_SPEED);
 
-    // enable analysis & download
+    // result typed, enable view analysis & download
     viewAnalysisBtn.disabled = false;
     downloadBtn.disabled = false;
   };
@@ -202,6 +190,7 @@ viewAnalysisBtn.addEventListener("click", async () => {
     alert("No analysis data available. First upload a CSV and wait for results.");
     return;
   }
+  // open analysis popup and then create charts
   analysisPopup.style.display = "flex";
   analysisPopup.setAttribute("aria-hidden","false");
   await createEdaCharts(window._lastParsedRows);
@@ -267,14 +256,20 @@ updateTicker().then(()=>requestAnimationFrame(animateTicker));
 setInterval(updateTicker, 15000);
 
 // ===== EDA CHARTS: create charts safely =====
+function removeStrayEdaCanvases() {
+  // do not remove the main matrix canvas; only cleanup stray eda canvases not inside analysisPopup
+  document.querySelectorAll('canvas.eda-canvas').forEach(c => {
+    if (!analysisPopup.contains(c)) c.remove();
+  });
+}
 let charts = [];
 async function createEdaCharts(rows) {
   await loadChartJs();
+  removeStrayEdaCanvases();
 
   // compute counts
   const counts = { Positive:0, Neutral:0, Negative:0 };
   rows.forEach(r => { counts[r.sentiment] = (counts[r.sentiment]||0) + 1; });
-
   // update summary UI
   statPos.textContent = `Positive ${counts.Positive}`;
   statNeu.textContent = `Neutral ${counts.Neutral}`;
@@ -285,7 +280,7 @@ async function createEdaCharts(rows) {
   charts.forEach(c => { try{ c.destroy(); } catch(e){} });
   charts = [];
 
-  // helper: prepare canvas for high-DPI
+  // helper to prepare canvas size & context for high-DPI
   function prepareCanvas(id) {
     const canvas = document.getElementById(id);
     const parent = canvas.parentElement;
@@ -325,10 +320,65 @@ async function createEdaCharts(rows) {
   charts.push(new Chart(ctx3.canvas.getContext('2d'), {
     type:'line',
     data:{ labels, datasets:[
-      { label:'Positive', data:posSeries, borderColor:'#4CAF50', pointRadius:1, fill:false, tension:0.2 },
-      { label:'Neutral', data:neuSeries, borderColor:'#90A4AE', pointRadius:1, fill:false, tension:0.2 },
-      { label:'Negative', data:negSeries, borderColor:'#F44336', pointRadius:1, fill:false, tension:0.2 }
+      { label:'Positive', data:posSeries, borderColor:'#4CAF50', fill:false, tension:0.2 },
+      { label:'Neutral', data:neuSeries, borderColor:'#90A4AE', fill:false, tension:0.2 },
+      { label:'Negative', data:negSeries, borderColor:'#F44336', fill:false, tension:0.2 }
     ]},
     options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'top' } } }
   }));
+
+  // attach interactive download handlers for charts and badges
+  attachChartClickHandlers();
+  makeBadgesDownloadable();
+}
+
+// ===== Download filtered CSV helper =====
+function downloadFiltered(sentimentLabel) {
+  if (!window._lastParsedRows || !window._lastParsedRows.length) {
+    alert("No parsed rows available to download.");
+    return;
+  }
+  const filtered = window._lastParsedRows.filter(r => String(r.sentiment).toLowerCase() === String(sentimentLabel).toLowerCase());
+  if (filtered.length === 0) {
+    alert(`No rows found for "${sentimentLabel}".`);
+    return;
+  }
+  downloadCsvFromRows(filtered);
+}
+
+// ===== Make stat badges clickable =====
+function makeBadgesDownloadable() {
+  if (!document.getElementById("statPos")) return;
+  const elPos = document.getElementById("statPos");
+  const elNeu = document.getElementById("statNeu");
+  const elNeg = document.getElementById("statNeg");
+  if (elPos) elPos.onclick = () => downloadFiltered("Positive");
+  if (elNeu) elNeu.onclick = () => downloadFiltered("Neutral");
+  if (elNeg) elNeg.onclick = () => downloadFiltered("Negative");
+}
+
+// ===== Attach click handlers to Chart.js charts to download filtered rows =====
+function attachChartClickHandlers() {
+  if (!Array.isArray(charts) || charts.length === 0) return;
+  charts.forEach((ch) => {
+    if (!ch) return;
+    ch.options.onClick = function (evt, elements, chart) {
+      if (!elements || elements.length === 0) return;
+      const el = elements[0];
+      const label = chart.data.labels[el.index];
+      if (label) downloadFiltered(label);
+    };
+    if (ch.options.plugins && ch.options.plugins.legend) {
+      const prev = ch.options.plugins.legend.onClick;
+      ch.options.plugins.legend.onClick = function (e, legendItem, legend) {
+        try {
+          const label = legendItem.text;
+          if (label) downloadFiltered(label);
+        } catch (err) {
+          if (typeof prev === "function") prev.call(this, e, legendItem, legend);
+        }
+      };
+    }
+    try { ch.update(); } catch(e){}
+  });
 }

@@ -1,5 +1,3 @@
-/* ===== Updated style.css - MarketPulse AI ===== */
-
 /* BASIC RESET */
 * { margin:0; padding:0; box-sizing:border-box; font-family: 'Ndot 57 Aligned', sans-serif; }
 
@@ -28,184 +26,94 @@ h1 { margin-top:3vh; font-size:3rem; text-align:center; text-shadow:1px 1px #000
 
 input[type="file"] { display:none; }
 
-.upload-btn { background:linear-gradient(90deg,#00fff7,#00c3ff); color:#000; font-weight:bold; padding:18px 36px; border:none; border-radius:15px; cursor:pointer; font-size:1.15rem; box-shadow:0 0 20px #00fff7,0 0 35px #00c3ff; transition:0.18s ease; }
-.upload-btn:hover { transform:scale(1.04); box-shadow:0 0 30px #00fff7,0 0 50px #00c3ff; }
+.upload-btn { background:linear-gradient(90deg,#00fff7,#00c3ff); color:#000; font-weight:bold; padding:18px 36px; border:none; border-radius:15px; cursor:pointer; font-size:1.15rem; box-shadow:0 0 20px #00fff7,0 0 35px #00c3ff; transition:0.3s; }
+.upload-btn:hover { transform:scale(1.08); box-shadow:0 0 30px #00fff7,0 0 50px #00c3ff; }
 .uploaded { background: linear-gradient(90deg,#4de6b9,#00c3ff) !important; color: #002 !important; box-shadow: 0 0 30px #00fff7, 0 0 50px #00c3ff; }
 
 /* status */
 #statusBox { text-align:center; font-size:1.2rem; font-weight:bold; line-height:1.8; }
 
-/* RESULT POPUP (typewriter) - dark glass (transparent) */
+/* RESULT POPUP (typewriter) - semi-transparent blue glass */
 #resultPopup {
   display:none;
   position:fixed;
   top:50%;
   left:50%;
-  transform:translate(-50%,-50%) scale(0.96);
-  width:86%;
-  max-width:1100px;
-  max-height:72vh;
-  /* Use hidden overflow on container; inner areas scroll separately */
-  overflow:hidden;
-  /* dark transparent glass - reverted from bright blue */
-  background: linear-gradient(180deg, rgba(6,10,14,0.75), rgba(8,12,18,0.65));
+  transform:translate(-50%,-50%) scale(0.95);
+  width:80%;
+  max-width:980px;
+  max-height:70vh;
+  overflow:auto;
+  background: linear-gradient(180deg, rgba(10,120,210,0.18), rgba(6,90,170,0.12));
   backdrop-filter: blur(10px) saturate(1.05);
   -webkit-backdrop-filter: blur(10px) saturate(1.05);
-  border: 1px solid rgba(0,200,255,0.06);
+  border: 1px solid rgba(0,200,255,0.14);
   border-radius:14px;
-  padding:18px;
+  padding:20px;
   color:#eafcff;
-  box-shadow: 0 18px 60px rgba(0, 10, 20, 0.65);
+  box-shadow: 0 12px 60px rgba(0, 40, 80, 0.45), inset 0 1px 0 rgba(255,255,255,0.03);
   z-index:11000;
 }
+#resultPopup.show { display:block; transform:translate(-50%,-50%) scale(1); opacity:1; }
 
-/* show state */
-#resultPopup.show {
-  display:block;
-  transform:translate(-50%,-50%) scale(1);
-  opacity:1;
-}
-
-/* close button */
+/* close button stays visible on blue background */
 #resultPopup .popup-close {
-  position:absolute;
-  right:18px;
-  top:10px;
-  background:rgba(255,255,255,0.04);
-  border:1px solid rgba(255,255,255,0.03);
-  color:#fff;
-  font-size:18px;
-  padding:6px 8px;
-  border-radius:6px;
-  cursor:pointer;
-  z-index:11100;
+  position:absolute; right:18px; top:12px; background:rgba(255,255,255,0.06);
+  border:1px solid rgba(255,255,255,0.06); color:#fff; font-size:18px; padding:6px 8px; border-radius:6px; cursor:pointer;
 }
 
-/* popup layout - content container */
-.popup-content {
-  display:flex;
-  flex-direction:column;
-  gap:12px;
-  height:calc(72vh - 64px); /* leave room for paddings + controls */
-}
-
-/* typewriter area (scrolls) */
+/* type area stays slightly darker for contrast */
 .type-col {
   font-family: 'Courier New', monospace;
   font-size:14px;
   line-height:1.6;
   white-space:pre-wrap;
   color:#eafcff;
-  flex:1 1 auto;
+  min-height:240px;
+  max-height:46vh;
   overflow:auto;
-  padding:16px;
-  border-radius:10px;
+  padding-right:12px;
   background: linear-gradient(180deg, rgba(2,6,10,0.06), rgba(2,6,10,0.02));
-  border: 1px solid rgba(0,0,0,0.05);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.02);
+  border-radius:8px;
+  padding:14px;
+  border: 1px solid rgba(0,0,0,0.04);
 }
 
-/* keep action buttons pinned (sticky) to bottom of popup-content */
-.popup-controls {
-  display:flex;
-  gap:12px;
-  justify-content:flex-end;
-  align-items:center;
-  padding-top:8px;
-  /* sticky inside the popup's scrolling context */
-  position:sticky;
-  bottom:0;
-  background: linear-gradient(180deg, rgba(0,0,0,0), rgba(0,0,0,0));
-  z-index:11100;
-}
+/* nicer scrollbar on the blue glass */
+#resultPopup::-webkit-scrollbar, .type-col::-webkit-scrollbar { width:12px; }
+#resultPopup::-webkit-scrollbar-track, .type-col::-webkit-scrollbar-track { background: rgba(255,255,255,0.03); border-radius:8px; }
+#resultPopup::-webkit-scrollbar-thumb, .type-col::-webkit-scrollbar-thumb { background: linear-gradient(180deg, rgba(0,180,230,0.28), rgba(0,140,200,0.24)); border-radius:8px; border: 2px solid rgba(0,0,0,0.06); }
 
-/* action buttons */
+.popup-content { display:block; padding-top:6px; }
+.popup-controls { display:flex; gap:12px; margin-top:12px; justify-content:flex-end; }
 .action-btn { background:linear-gradient(90deg,#00c3ff,#00fff7); color:#002; border:none; padding:10px 16px; border-radius:10px; cursor:pointer; box-shadow:0 6px 18px rgba(0,195,255,0.06); font-weight:700; }
+.action-btn:disabled { opacity:0.5; cursor:not-allowed; transform:none; }
 .action-btn:active { transform:translateY(1px); }
 
-/* nice scrollbars for modern browsers */
-#resultPopup::-webkit-scrollbar, .type-col::-webkit-scrollbar { width:12px; height:12px; }
-#resultPopup::-webkit-scrollbar-track, .type-col::-webkit-scrollbar-track { background: rgba(255,255,255,0.02); border-radius:8px; }
-#resultPopup::-webkit-scrollbar-thumb, .type-col::-webkit-scrollbar-thumb { background: linear-gradient(180deg, rgba(0,140,200,0.22), rgba(0,100,160,0.22)); border-radius:8px; border:2px solid rgba(0,0,0,0.06); }
-
-/* STOCK TICKER (no change to color or structure) */
+/* STOCK TICKER */
 #stock-ticker { width:100%; overflow:hidden; background:#000; border-top:1px solid #00fff7; border-bottom:1px solid #00fff7; padding:15px 0; margin-top:40px; position:relative; }
 #ticker-headlines { display:inline-block; white-space:nowrap; will-change:transform; }
 .stock-item { margin-right:60px; font-weight:bold; font-size:1.1rem; }
 .stock-name { color:#00aaff; margin-right:5px; }
 .stock-value { color:#fff; }
 
-/* ANALYSIS POPUP (dark + clipped canvases) */
-#analysisPopup {
-  display:none;
-  position:fixed;
-  inset:0;
-  background: rgba(2,8,12,0.6);
-  z-index:12000;
-  backdrop-filter: blur(6px);
-  align-items:center;
-  justify-content:center;
-  padding:40px;
-}
+/* Analysis popup (dark + clipped canvases) */
+#analysisPopup { display:none; position:fixed; inset:0; background: rgba(2,8,12,0.6); z-index:12000; backdrop-filter: blur(6px); align-items:center; justify-content:center; padding:40px; }
+#analysisPopup .panel { width:min(1200px,95%); max-height:85vh; overflow:auto; background: rgba(6,10,14,0.94); border-radius:14px; border: 2px solid rgba(0,255,247,0.04); padding:20px; box-shadow: 0 12px 60px rgba(0,0,0,0.6); position:relative; }
+.analysis-header{ display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:12px; color:#eafcff; font-weight:700; }
+.analysis-grid{ display:grid; grid-template-columns: 1fr 1fr; gap:16px; }
+.analysis-box{ background: rgba(255,255,255,0.01); border-radius:10px; padding:12px; min-height:240px; position:relative; border:1px solid rgba(0,255,247,0.02); overflow:hidden; display:flex; align-items:center; justify-content:center; }
+.eda-canvas { position:absolute !important; inset:0; width:100% !important; height:100% !important; display:block !important; z-index:12010; }
 
-/* main panel */
-#analysisPopup .panel {
-  width:min(1200px,95%);
-  max-height:85vh;
-  overflow:auto;
-  background: rgba(6,10,14,0.92); /* slightly transparent dark */
-  border-radius:14px;
-  border: 1px solid rgba(0,255,247,0.03);
-  padding:20px;
-  box-shadow: 0 18px 80px rgba(0,0,0,0.6);
-  position:relative;
-}
-
-/* header */
-.analysis-header { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:14px; }
-.analysis-header h3 { color:#00f0ff; letter-spacing:0.6px; }
-
-/* grid */
-.analysis-grid { display:grid; grid-template-columns: 1fr 1fr; gap:16px; align-items:stretch; }
-
-/* each box is a positioned container for the chart canvas */
-/* ensure it is positioned (so canvas absolute will be constrained) */
-.analysis-box {
-  background: rgba(255,255,255,0.01);
-  border-radius:10px;
-  padding:12px;
-  min-height:260px;
-  position:relative; /* IMPORTANT: makes child canvas fit */
-  border:1px solid rgba(0,255,247,0.02);
-  overflow:hidden;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-}
-
-/* Chart canvases - DO NOT place them absolutely relative to BODY.
-   Make them fill their box (Chart.js will draw correctly). */
-.eda-canvas {
-  position:relative !important;
-  width:100% !important;
-  height:100% !important;
-  display:block !important;
-  z-index:12010;
-}
-
-/* If Chart.js needs a wrapper sizing element, it will inherit box size. */
-
-/* summary area & stats (right-bottom box) */
-#analysisInfo { display:flex; flex-direction:column; justify-content:center; gap:12px; padding:18px; }
-#summaryText { color:#60f6ff; font-weight:700; letter-spacing:0.3px; font-size:13px; }
-
-/* stat badges */
+/* stats */
 .stat-row { display:flex; gap:10px; margin-top:8px; }
-.stat { padding:8px 12px; border-radius:999px; font-weight:700; background:rgba(255,255,255,0.02); }
+.stat { padding:8px 12px; border-radius:999px; font-weight:700; cursor:pointer; transition: transform 0.12s ease; }
 .stat.pos { background: rgba(76,175,80,0.12); color:#7bf08f; border:1px solid rgba(76,175,80,0.12); }
 .stat.neu { background: rgba(158,158,158,0.06); color:#ddd; border:1px solid rgba(158,158,158,0.06); }
 .stat.neg { background: rgba(244,67,54,0.06); color:#ffb3b3; border:1px solid rgba(244,67,54,0.06); }
+.stat:hover { transform: translateY(-2px); filter: brightness(1.05); }
 
+/* analysis close */
 #analysisPopup .close-anal { background:transparent; border:none; color:#fff; font-size:22px; cursor:pointer; padding:6px 10px; border-radius:8px; }
 
 /* footer */

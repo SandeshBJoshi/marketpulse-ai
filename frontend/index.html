@@ -11,56 +11,52 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <canvas id="matrix" aria-hidden="true"></canvas>
+  <canvas id="matrix"></canvas>
 
   <!-- Brandmark / Logo -->
-  <div class="brandmark" aria-hidden="true">MarketPulse AI</div>
+  <div class="brandmark">MarketPulse AI</div>
 
   <h1>Sentimental Analysis on Stock Market</h1>
   <p class="slogan">Decoding market mood, one post at a time</p>
 
-  <div class="container" role="region" aria-label="CSV upload area">
-    <label for="fileInput" id="uploadLabel" class="upload-btn" role="button" tabindex="0">📤 Upload CSV File</label>
+  <div class="container">
+    <label for="fileInput" id="uploadLabel" class="upload-btn">📤 Upload CSV File</label>
     <input type="file" id="fileInput" accept=".csv" />
-
-    <div id="statusBox" aria-live="polite">
+    <div id="statusBox">
       <p id="awaiting">Awaiting file upload...</p>
       <p id="analyzing" style="display:none;">Analyzing sentiments...</p>
     </div>
   </div>
 
-  <!-- Result Popup (typewriter + pinned controls) -->
-  <div id="resultPopup" aria-hidden="true" role="dialog" aria-modal="true">
-    <button class="popup-close" id="closeResults" title="Close results">✖</button>
-
+  <!-- Result Popup (typewriter + controls) -->
+  <div id="resultPopup" aria-hidden="true">
+    <button class="popup-close" id="closeResults">✖</button>
     <div class="popup-content">
-      <div class="type-col" id="type-col-wrapper">
-        <div id="typewriter" aria-live="polite">Loading...</div>
-      </div>
-
-      <div class="popup-controls" role="toolbar" aria-label="Result actions">
-        <button class="action-btn" id="downloadCsv" title="Download results">⬇ Download Results</button>
-        <button class="action-btn" id="viewAnalysis" title="View detailed analysis">📊 View Analysis</button>
-        <button class="action-btn" id="closeBtn" title="Close popup">Close</button>
+      <div class="type-col">
+        <div id="typewriter">Loading...</div>
+        <div class="popup-controls">
+          <button class="action-btn" id="downloadCsv" disabled>⬇ Download Results</button>
+          <button class="action-btn" id="viewAnalysis" disabled>📊 View Analysis</button>
+          <button class="action-btn" id="closeBtn">Close</button>
+        </div>
       </div>
     </div>
   </div>
 
   <!-- Analysis popup with grid canvases (initially hidden) -->
-  <div id="analysisPopup" aria-hidden="true" role="dialog" aria-modal="true">
-    <div class="panel" role="document">
+  <div id="analysisPopup" aria-hidden="true">
+    <div class="panel">
       <div class="analysis-header">
         <h3>IN-DEPTH MARKETPULSE EDA</h3>
-        <button class="close-anal" id="closeAnal" aria-label="Close analysis">✖</button>
+        <button class="close-anal" id="closeAnal">✖</button>
       </div>
 
       <div class="analysis-grid">
-        <div class="analysis-box"><canvas id="chart1" class="eda-canvas" aria-label="Chart 1"></canvas></div>
-        <div class="analysis-box"><canvas id="chart2" class="eda-canvas" aria-label="Chart 2"></canvas></div>
-        <div class="analysis-box"><canvas id="chart3" class="eda-canvas" aria-label="Chart 3"></canvas></div>
-
+        <div class="analysis-box"><canvas id="chart1" class="eda-canvas"></canvas></div>
+        <div class="analysis-box"><canvas id="chart2" class="eda-canvas"></canvas></div>
+        <div class="analysis-box"><canvas id="chart3" class="eda-canvas"></canvas></div>
         <div class="analysis-box" id="analysisInfo">
-          <div id="summaryText" style="font-family:'Ndot 57 Aligned', monospace;"></div>
+          <div id="summaryText" style="font-family:'Ndot 57 Aligned', monospace; color:#eafcff; font-weight:700;"></div>
           <div class="stat-row" style="margin-top:12px;">
             <div class="stat pos" id="statPos">Positive 0</div>
             <div class="stat neu" id="statNeu">Neutral 0</div>
@@ -71,7 +67,7 @@
     </div>
   </div>
 
-  <div id="stock-ticker" aria-hidden="false" role="region" aria-label="Live stock ticker">
+  <div id="stock-ticker">
     <div id="ticker-headlines">Loading live stocks...</div>
   </div>
 
