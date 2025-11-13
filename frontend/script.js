@@ -1,6 +1,6 @@
 // ===== CONFIG =====
 const BACKEND_BASE = "https://marketpulse-ai-kir2.onrender.com"; // Render backend URL
-const CSV_ROW_LIMIT = 20;           // how many CSV rows to analyze at once
+const CSV_ROW_LIMIT = 31;           // how many CSV rows to analyze at once
 const TYPEWRITER_SPEED = 5;        // ms per character
 const TICKER_SPEED = 3;             // pixels per frame
 
