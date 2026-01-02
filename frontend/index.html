@@ -5,20 +5,19 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>MarketPulse AI - Stock Sentiment Analyzer</title>
 
-  <!-- Ndot 57 Aligned font -->
   <link href="https://db.onlinewebfonts.com/c/d7a74ed36ff0603a3e41b6da32c47f03?family=Ndot+57+Aligned" rel="stylesheet">
-
   <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
   <canvas id="matrix"></canvas>
 
-  <!-- Brandmark / Logo -->
   <div class="brandmark">MarketPulse AI</div>
 
   <h1>Sentimental Analysis on Stock Market</h1>
   <p class="slogan">Decoding market mood, one post at a time</p>
 
+  <!-- Upload Section -->
   <div class="container">
     <label for="fileInput" id="uploadLabel" class="upload-btn">📤 Upload CSV File</label>
     <input type="file" id="fileInput" accept=".csv" />
@@ -28,7 +27,14 @@
     </div>
   </div>
 
-  <!-- Result Popup (typewriter + controls) -->
+  <!-- AFTER UPLOAD: ACTION SELECTION -->
+  <div class="container" id="actionPanel" style="display:none;">
+    <h3 style="color:#eafcff;">Choose Analysis Type</h3>
+    <button class="action-btn" id="openSentiment" disabled>🧠 Sentiment Analysis</button>
+    <button class="action-btn" id="openEDA" disabled>📊 Visualization (EDA)</button>
+  </div>
+
+  <!-- Sentiment Result Popup -->
   <div id="resultPopup" aria-hidden="true">
     <button class="popup-close" id="closeResults">✖</button>
     <div class="popup-content">
@@ -36,14 +42,13 @@
         <div id="typewriter">Loading...</div>
         <div class="popup-controls">
           <button class="action-btn" id="downloadCsv" disabled>⬇ Download Results</button>
-          <button class="action-btn" id="viewAnalysis" disabled>📊 View Analysis</button>
           <button class="action-btn" id="closeBtn">Close</button>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Analysis popup with grid canvases (initially hidden) -->
+  <!-- EDA Popup -->
   <div id="analysisPopup" aria-hidden="true">
     <div class="panel">
       <div class="analysis-header">
@@ -55,8 +60,9 @@
         <div class="analysis-box"><canvas id="chart1" class="eda-canvas"></canvas></div>
         <div class="analysis-box"><canvas id="chart2" class="eda-canvas"></canvas></div>
         <div class="analysis-box"><canvas id="chart3" class="eda-canvas"></canvas></div>
-        <div class="analysis-box" id="analysisInfo">
-          <div id="summaryText" style="font-family:'Ndot 57 Aligned', monospace; color:#eafcff; font-weight:700;"></div>
+
+        <div class="analysis-box">
+          <div id="summaryText" style="font-weight:700;"></div>
           <div class="stat-row" style="margin-top:12px;">
             <div class="stat pos" id="statPos">Positive 0</div>
             <div class="stat neu" id="statNeu">Neutral 0</div>
@@ -67,6 +73,7 @@
     </div>
   </div>
 
+  <!-- Stock ticker -->
   <div id="stock-ticker">
     <div id="ticker-headlines">Loading live stocks...</div>
   </div>
